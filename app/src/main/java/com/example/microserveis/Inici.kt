@@ -21,7 +21,6 @@ fun Inici(navController: NavHostController, viewModel: MainViewModel) {
 
     LaunchedEffect(Unit) {
         viewModel.fetchScripts()
-        viewModel.connectToSocket()
     }
 
     Scaffold(
@@ -43,7 +42,7 @@ fun Inici(navController: NavHostController, viewModel: MainViewModel) {
                 items(scripts) { script ->
                     ScriptRow(
                         scriptName = script,
-                        status = (scriptsStatus[script] ?: "stopped").toString(),
+                        status = scriptsStatus[script]?.status ?: "stopped",
                         onStartStop = { viewModel.toggleScript(script) },
                         onViewLogs = { navController.navigate("logs/output/$script") },
                         onViewErrorLogs = { navController.navigate("logs/error/$script") }

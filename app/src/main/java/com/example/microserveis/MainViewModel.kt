@@ -27,6 +27,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         fetchScripts()
+        connectToSocket()
     }
 
     fun fetchScripts() {
@@ -36,8 +37,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     _scripts.postValue(response.body() ?: emptyList())
                 }
             }
+
             override fun onFailure(call: Call<List<String>>, t: Throwable) {
-                Log.e("App", "Error de conexión: ${t.message}")
+                Log.e("MainViewModel", "Error obteniendo scripts: ${t.message}")
             }
         })
     }
@@ -47,16 +49,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             override fun onResponse(call: Call<ScriptStatus>, response: Response<ScriptStatus>) {
                 if (response.isSuccessful) {
                     val updatedStatus = _scriptsStatus.value?.toMutableMap() ?: mutableMapOf()
-                    val scriptStatus = response.body()
-                    if (scriptStatus != null) {
-                        updatedStatus[scriptName] = scriptStatus
-                        _scriptsStatus.postValue(updatedStatus)
-                    }
+                    response.body()?.let { updatedStatus[scriptName] = it }
+                    _scriptsStatus.postValue(updatedStatus)
                 }
             }
 
             override fun onFailure(call: Call<ScriptStatus>, t: Throwable) {
-                Log.e("App", "Error de conexión: ${t.message}")
+                Log.e("MainViewModel", "Error obteniendo estado: ${t.message}")
             }
         })
     }
@@ -68,14 +67,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         RetrofitClient.apiService.controlScript(scriptName, action).enqueue(object : Callback<Map<String, String>> {
             override fun onResponse(call: Call<Map<String, String>>, response: Response<Map<String, String>>) {
                 if (response.isSuccessful) {
-                    val updatedStatus = _scriptsStatus.value?.toMutableMap() ?: mutableMapOf()
-                    updatedStatus[scriptName] = ScriptStatus(scriptName, if (action == "start") "running" else "stopped", emptyList(), emptyList())
-                    _scriptsStatus.postValue(updatedStatus)
+                    fetchScriptStatus(scriptName)
                 }
             }
 
             override fun onFailure(call: Call<Map<String, String>>, t: Throwable) {
-                Log.e("App", "Error de conexión: ${t.message}")
+                Log.e("MainViewModel", "Error cambiando estado: ${t.message}")
             }
         })
     }
@@ -83,25 +80,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun connectToSocket() {
         try {
             socket = IO.socket("http://10.0.2.2:3000")
-            socket?.on(Socket.EVENT_CONNECT) {
-                Log.d("Socket.IO", "Conexión establecida")
-            }
+            socket?.on(Socket.EVENT_CONNECT) { Log.d("WebSocket", "Conexión establecida") }
+
             socket?.on("status") { args ->
                 if (args.isNotEmpty()) {
                     val data = args[0] as JSONObject
                     val scriptName = data.getString("script")
                     val status = data.getString("message")
                     val updatedStatus = _scriptsStatus.value?.toMutableMap() ?: mutableMapOf()
-                    updatedStatus[scriptName] = ScriptStatus(scriptName, status, emptyList(), emptyList()) // Suponemos que los logs están vacíos al inicio
+                    updatedStatus[scriptName] = ScriptStatus(scriptName, status, emptyList(), emptyList())
                     _scriptsStatus.postValue(updatedStatus)
                 }
             }
+
             socket?.connect()
         } catch (e: URISyntaxException) {
-            e.printStackTrace()
+            Log.e("WebSocket", "Error conectando al WebSocket", e)
         }
     }
 }
+
 
 
 
