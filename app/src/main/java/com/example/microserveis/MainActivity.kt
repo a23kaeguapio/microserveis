@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.microserveis.dao.ServerConfig
 
 
 class MainActivity : ComponentActivity() {
@@ -26,6 +27,7 @@ class MainActivity : ComponentActivity() {
 }
 @Composable
 fun AppNavigation (navController: NavHostController,viewModel: MainViewModel) {
+    val configViewModel:ConfigViewModel = viewModel()
     NavHost(navController = navController, startDestination = "pantallaIni"){
         composable("pantallaIni") { Inici(navController, viewModel) }
         composable("logs/output/{scriptName}") { backStackEntry ->
@@ -36,6 +38,9 @@ fun AppNavigation (navController: NavHostController,viewModel: MainViewModel) {
             val scriptName = backStackEntry.arguments?.getString("scriptName") ?: ""
             LogsError(viewModel, scriptName)
         }
-    }
+        composable("configuracions") {
+            ConfigScreen(navController, configViewModel)
+        }    }
 }
+
 

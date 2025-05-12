@@ -75,6 +75,8 @@ dependencies {
     implementation("org.json:json:20230227")
     implementation ("io.socket:socket.io-client:2.1.1")
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.androidx.room.common.jvm)
+    implementation(libs.androidx.room.runtime.android)
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")

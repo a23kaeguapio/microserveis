@@ -3,6 +3,8 @@ package com.example.microserveis
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,10 +29,16 @@ fun Inici(navController: NavHostController, viewModel: MainViewModel) {
         topBar = {
             TopAppBar(
                 title = { Text("Microserveis") },
+                actions = {
+                    IconButton(onClick = { navController.navigate("configuracions") }) {
+                        Icon(Icons.Default.Settings, contentDescription = "Configuració")
+                    }
+                },
                 colors = TopAppBarDefaults.mediumTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
             )
+
         }
     ) { paddingValues ->
         Column(
